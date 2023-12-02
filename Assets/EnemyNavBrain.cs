@@ -10,9 +10,12 @@ public class EnemyNavBrain : MonoBehaviour
     private Transform Player;
     
 
+    
+
     // Start is called before the first frame update
     private void Awake()
     {
+       
         navMeshAgent = GetComponent<NavMeshAgent>();
     }
 
