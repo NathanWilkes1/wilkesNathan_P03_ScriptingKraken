@@ -18,7 +18,7 @@ public class EnemyNavBrain : MonoBehaviour
 
     private void Update()
     {
-        navMeshAgent.destination = Target.position;
-    }
+     navMeshAgent.destination = Target.position;
 
-}
+    }
+    }
