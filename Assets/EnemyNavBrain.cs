@@ -30,8 +30,6 @@ public class EnemyNavBrain : MonoBehaviour
     [SerializeField] options_2 Seen;
     [SerializeField] [Range(1, 360)] float visionCone = 45f;
     [SerializeField] float visionRange = 10f;
-    [SerializeField] bool Forgetful;
-    [SerializeField] float AttentionSpanSeconds = 5f;
     [SerializeField] float MovementSpeed = 1f;
     private float stop = 1;
     private options_1 mode;
@@ -49,10 +47,13 @@ public class EnemyNavBrain : MonoBehaviour
         gameObject.AddComponent(typeof(NavMeshAgent));
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.stoppingDistance = 2;
+        navMeshAgent.speed = MovementSpeed;
     }
 
     private void Update()
     {
+        //there might be a more efficient way to write this but for my purposes having the 8 if branches was easy to view and mess with.
+
         SeekTarget();
         if (spotted == false)
         {
@@ -73,7 +74,14 @@ public class EnemyNavBrain : MonoBehaviour
             }
         else if (Unseen == options_1.Roam)
             {
-
+                if(navMeshAgent.remainingDistance < navMeshAgent.stoppingDistance)
+                {
+                    Vector3 newDestination;
+                        if(RandomPoint(transform.position,10,out newDestination))
+                    {
+                        navMeshAgent.SetDestination(newDestination);
+                    }
+                }
             }
         }
     else
@@ -102,8 +110,7 @@ public class EnemyNavBrain : MonoBehaviour
     //This code pretty much comes straight from the unity API as it does exactly what i needed straight out of the box. Changing it would be inefficient.
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
-        for (int i = 0; i < 30; i++)
-        {
+        
             Vector3 randomPoint = center + Random.insideUnitSphere * range;
             NavMeshHit hit;
             if (NavMesh.SamplePosition(randomPoint, out hit, 1.0f, NavMesh.AllAreas))
@@ -111,7 +118,6 @@ public class EnemyNavBrain : MonoBehaviour
                 result = hit.position;
                 return true;
             }
-        }
         result = Vector3.zero;
         return false;
     }
@@ -126,7 +132,7 @@ public class EnemyNavBrain : MonoBehaviour
         {
 
             //I actually took this from my turret script back from project 2.
-            ////Raycasting to make sure it's the right target makes sense to me.
+            ////Raycasting to make sure it's not behind a wall made sense for the AI.
 
             Vector3 rayStartPos = gameObject.transform.position;
             Vector3 rayDirection = Target.transform.position - transform.position;
@@ -140,6 +146,8 @@ public class EnemyNavBrain : MonoBehaviour
                 if (hitInfo.collider.gameObject == Target.gameObject)
                 {
                     spotted = true;
+
+                    //I added this since the idle modes would set the navAgent to stop
                     navMeshAgent.Resume();
                 }
                 else
