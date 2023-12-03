@@ -28,16 +28,18 @@ public class EnemyNavBrain : MonoBehaviour
     
     [SerializeField] options_1 Unseen;
     [SerializeField] options_2 Seen;
+    [SerializeField] [Range(1, 360)] float visionCone = 45f;
+    [SerializeField] float visionRange = 10f;
     [SerializeField] bool Forgetful;
-    [SerializeField] float AttentionSpanSeconds = 5;
-    [SerializeField] float MovementSpeed = 1;
+    [SerializeField] float AttentionSpanSeconds = 5f;
+    [SerializeField] float MovementSpeed = 1f;
     private float stop = 1;
     private options_1 mode;
 
 
     private void Awake()
     {
-
+       
         
     }
 
@@ -46,18 +48,23 @@ public class EnemyNavBrain : MonoBehaviour
     {
         gameObject.AddComponent(typeof(NavMeshAgent));
         navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent.stoppingDistance = 2;
     }
 
     private void Update()
     {
-        if (spotted = false)
+        SeekTarget();
+        if (spotted == false)
         {
+            Debug.Log("unseen");
         if (Unseen == options_1.Idle)
             {
-
+                Debug.Log("unseen idle");
+                this.navMeshAgent.Stop();
             }
         else if(Unseen == options_1.Approach)
             {
+                Debug.Log("unseen approach");
                 this.navMeshAgent.SetDestination(Target.position);
             }
         else if (Unseen == options_1.Patrol)
@@ -71,13 +78,16 @@ public class EnemyNavBrain : MonoBehaviour
         }
     else
      {
+            Debug.Log("seen");
             if (Seen == options_2.Idle)
             {
+                Debug.Log("seen idle");
                 this.navMeshAgent.Stop();
             }
             else if (Seen == options_2.Approach)
             {
-            this.navMeshAgent.SetDestination(Target.position);
+                Debug.Log("seen approach");
+                this.navMeshAgent.SetDestination(Target.position);
             }
             else if (Seen == options_2.Roam)
             {
@@ -106,6 +116,37 @@ public class EnemyNavBrain : MonoBehaviour
         return false;
     }
     //Roaming code End
+    
+    
+    //vision code.
+    private void SeekTarget() 
+    {
+        Vector3 direction = Target.transform.position - transform.position;
+        if (Mathf.Abs(Vector3.Angle(transform.forward, direction)) < visionCone && Vector3.Distance(Target.transform.position, gameObject.transform.position) < visionRange)  
+        {
 
+            //I actually took this from my turret script back from project 2.
+            ////Raycasting to make sure it's the right target makes sense to me.
 
+            Vector3 rayStartPos = gameObject.transform.position;
+            Vector3 rayDirection = Target.transform.position - transform.position;
+
+            Debug.DrawRay(rayStartPos, rayDirection * 30, Color.cyan, 5);
+            if (Physics.Raycast(rayStartPos, rayDirection, out RaycastHit hitInfo, 30, ~2))
+            {
+                Debug.Log(hitInfo.collider.gameObject.layer);
+                Debug.Log(hitInfo.collider.gameObject);
+
+                if (hitInfo.collider.gameObject == Target.gameObject)
+                {
+                    spotted = true;
+                    navMeshAgent.Resume();
+                }
+                else
+                {
+                    
+                }
+            }
+        }
+    }
 }

@@ -14,6 +14,7 @@ public class NavBaker : MonoBehaviour
         {
            currentChild = this.gameObject.transform.GetChild(i);
             currentChild.gameObject.isStatic = true;
+            
         }
         surface.BuildNavMesh();
     }
